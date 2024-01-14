@@ -1,0 +1,96 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// creating the model institute that can have multiple number of routines
+model Institute {
+  id               String      @id @default(uuid())
+  name             String
+  class_starts     String
+  class_ends       String
+  period_intervals Int
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  subjects         Subject[]
+  classrooms       Classroom[]
+}
+
+// model classroom that can have number of subjects 
+model Classroom {
+  id             String             @id @default(uuid())
+  name           String
+  sections       Int
+  subSections    Int
+  instituteId    String
+  institute      Institute          @relation(fields: [instituteId], references: [id])
+  subjects       ClassroomSubject[]
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  teachersubject TeacherSubject[]
+}
+
+model Subject {
+  id          String             @id @default(uuid())
+  name        String
+  creditHrs   Int
+  instituteId String
+  institute   Institute          @relation(fields: [instituteId], references: [id])
+  classrooms  ClassroomSubject[]
+  teachers    TeacherSubject[]
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  @@index([instituteId])
+}
+
+model ClassroomSubject {
+  id          String    @id @default(uuid())
+  classroomId String
+  subjectId   String
+  classroom   Classroom @relation(fields: [classroomId], references: [id])
+  subject     Subject   @relation(fields: [subjectId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([classroomId, subjectId])
+}
+
+model Teacher {
+  id         String           @id @default(uuid())
+  name       String
+  max_period Int
+  institueId String
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+  subjects   TeacherSubject[]
+}
+
+model TeacherSubject {
+  id         String    @id @default(uuid())
+  teacherId  String
+  subjectId  String
+  classId    String
+  creditHrs  Int
+  classrooms Classroom @relation(fields: [classId], references: [id])
+  teacher    Teacher   @relation(fields: [teacherId], references: [id])
+  subject    Subject   @relation(fields: [subjectId], references: [id])
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([teacherId, subjectId])
+}
+
+model modifiedRoutine {
+  id          String   @id @default(uuid())
+  routinedata Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
